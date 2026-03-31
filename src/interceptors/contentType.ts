@@ -12,9 +12,9 @@ export const setupContentTypeInterceptor = (instance: AxiosInstance) => {
     const data = config.data;
 
     if (data instanceof FormData || data instanceof Blob) {
-      delete config.headers['Content-Type'];
+      config.headers.delete('Content-Type');
     } else if (data instanceof URLSearchParams) {
-      config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      config.headers.set('Content-Type', 'application/x-www-form-urlencoded');
     }
 
     return config;

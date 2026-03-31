@@ -75,7 +75,7 @@ var t = (e) => e ? typeof e == "function" ? e : (e, t) => {
 }, c = (e) => {
 	e.interceptors.request.use((e) => {
 		let t = e.data;
-		return t instanceof FormData || t instanceof Blob ? delete e.headers["Content-Type"] : t instanceof URLSearchParams && (e.headers["Content-Type"] = "application/x-www-form-urlencoded"), e;
+		return t instanceof FormData || t instanceof Blob ? e.headers.delete("Content-Type") : t instanceof URLSearchParams && e.headers.set("Content-Type", "application/x-www-form-urlencoded"), e;
 	});
 }, l = (e) => {
 	let l = t(e.debug), d = u(e);
