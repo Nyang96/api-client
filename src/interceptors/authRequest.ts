@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios';
-import type { HttpClientAuthConfig } from '../types';
+import type { ApiClientAuthConfig } from '../types';
 
 /**
  * private 요청 인터셉터
@@ -8,16 +8,12 @@ import type { HttpClientAuthConfig } from '../types';
  */
 export const setupAuthRequestInterceptor = (
   instance: AxiosInstance,
-  auth: HttpClientAuthConfig
+  auth: ApiClientAuthConfig
 ) => {
   instance.interceptors.request.use(async (config) => {
     const accessToken = await auth.getAccessToken();
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
     }
 
     return config;

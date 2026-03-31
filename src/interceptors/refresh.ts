@@ -3,7 +3,7 @@ import type {
   AxiosError,
   InternalAxiosRequestConfig,
 } from 'axios';
-import type { HttpClientConfig, LogFn } from '../types';
+import type { ApiClientConfig, LogFn } from '../types';
 
 /**
  * 토큰 리프레시 인터셉터
@@ -16,7 +16,7 @@ import type { HttpClientConfig, LogFn } from '../types';
  */
 export const setupRefreshInterceptor = (
   instance: AxiosInstance,
-  config: HttpClientConfig,
+  config: ApiClientConfig,
   log: LogFn
 ) => {
   const auth = config.auth!;
@@ -34,13 +34,13 @@ export const setupRefreshInterceptor = (
     pendingQueue = [];
   };
 
-  // 기본 판단: 401 | 426 | TOKEN_EXPIRED
+  // refresh 대상 설정
   const shouldRefresh = auth.shouldRefresh ?? ((error: AxiosError) => {
     const status = error.response?.status;
     const message = (error.response?.data as any)?.message;
 
-    const codes = auth.refreshCondition?.statusCodes ?? [401, 426];
-    const messages = auth.refreshCondition?.messages ?? ['TOKEN_EXPIRED'];
+    const codes = auth.refreshCondition?.statusCodes ?? [];
+    const messages = auth.refreshCondition?.messages ?? [];
 
     return (
       (status != null && codes.includes(status)) ||

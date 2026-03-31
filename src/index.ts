@@ -1,10 +1,10 @@
-export { createHttpClient } from './createHttpClient';
+export { createApiClient } from './createApiClient';
 
 export type {
-  HttpClientConfig,
-  HttpClientBaseConfig,
-  HttpClientAuthConfig,
-  HttpClientInstance,
+  ApiClientConfig,
+  ApiClientBaseConfig,
+  ApiClientAuthConfig,
+  ApiClientInstance,
   TokenPair,
   ErrorContext,
   RetryConfig,

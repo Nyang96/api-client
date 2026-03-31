@@ -1,12 +1,13 @@
 import axios from 'axios';
-import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import type { HttpClientConfig, HttpClientInstance } from './types';
+import type { AxiosInstance } from 'axios';
+import type { ApiClientConfig, ApiClientInstance } from './types';
 import { resolveLogger } from './utils/resolveLogger';
 import { setupRequestLogger, setupResponseLogger } from './interceptors/logger';
 import { setupAuthRequestInterceptor } from './interceptors/authRequest';
 import { setupRefreshInterceptor } from './interceptors/refresh';
 import { setupRetryInterceptor } from './interceptors/retry';
 import { setupErrorInterceptor } from './interceptors/errorHandler';
+import { setupContentTypeInterceptor } from './interceptors/contentType';
 
 // axios 확장 — 재시도/로깅용 커스텀 필드
 declare module 'axios' {
@@ -18,18 +19,19 @@ declare module 'axios' {
 }
 
 /**
- * HTTP 클라이언트 팩토리
+ * Api 클라이언트 팩토리
  *
  * 인터셉터 등록 순서 (순서가 동작에 영향):
  * [request]  로깅 → 인증(private만) → 전송
  * [response] 로깅 → 리프레시(private만) → 재시도 → 에러 후처리
  */
-export const createHttpClient = (config: HttpClientConfig): HttpClientInstance => {
+export const createApiClient = (config: ApiClientConfig): ApiClientInstance => {
   const log = resolveLogger(config.debug);
 
   // ── public client ──
   const publicClient = createBaseInstance(config);
   setupRequestLogger(publicClient, log);
+  setupContentTypeInterceptor(publicClient);
   setupResponseLogger(publicClient, log);
   if (config.retry) {
     setupRetryInterceptor(publicClient, config.retry, log);
@@ -42,6 +44,7 @@ export const createHttpClient = (config: HttpClientConfig): HttpClientInstance =
   if (config.auth) {
     privateClient = createBaseInstance(config);
     setupRequestLogger(privateClient, log);
+    setupContentTypeInterceptor(publicClient);
     setupAuthRequestInterceptor(privateClient, config.auth);
     setupResponseLogger(privateClient, log);
     setupRefreshInterceptor(privateClient, config, log);
@@ -56,7 +59,7 @@ export const createHttpClient = (config: HttpClientConfig): HttpClientInstance =
 
 // ── 기본 인스턴스 생성 ──
 
-const createBaseInstance = (config: HttpClientConfig): AxiosInstance => {
+const createBaseInstance = (config: ApiClientConfig): AxiosInstance => {
   return axios.create({
     baseURL: config.baseURL,
     timeout: config.timeout ?? 30000,

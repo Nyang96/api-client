@@ -2,7 +2,7 @@ import type { AxiosError } from 'axios';
 
 // ── 공통 설정 ──
 
-export interface HttpClientBaseConfig {
+export interface ApiClientBaseConfig {
   baseURL: string;
   timeout?: number;
   defaultHeaders?: Record<string, string>;
@@ -23,7 +23,7 @@ export interface RetryConfig {
 
 // ── 인증 설정 ──
 
-export interface HttpClientAuthConfig {
+export interface ApiClientAuthConfig {
   getAccessToken: () => string | null | Promise<string | null>;
   getRefreshToken: () => string | null | Promise<string | null>;
 
@@ -54,9 +54,9 @@ export interface HttpClientAuthConfig {
 
 // ── 전체 설정 ──
 
-export interface HttpClientConfig extends HttpClientBaseConfig {
+export interface ApiClientConfig extends ApiClientBaseConfig {
   /** 인증 설정 — 있으면 privateClient 생성 */
-  auth?: HttpClientAuthConfig;
+  auth?: ApiClientAuthConfig;
 
   /** 에러 후처리 콜백 (에러 저장, 알림 등) */
   onError?: (error: AxiosError, context: ErrorContext) => void | Promise<void>;
@@ -64,7 +64,7 @@ export interface HttpClientConfig extends HttpClientBaseConfig {
 
 // ── 반환 타입 ──
 
-export interface HttpClientInstance {
+export interface ApiClientInstance {
   publicClient: import('axios').AxiosInstance;
   privateClient: import('axios').AxiosInstance | null;
 }

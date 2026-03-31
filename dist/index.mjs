@@ -15,7 +15,7 @@ var t = (e) => e ? typeof e == "function" ? e : (e, t) => {
 }, i = (e, t) => {
 	e.interceptors.request.use(async (e) => {
 		let n = await t.getAccessToken();
-		return n && (e.headers.Authorization = `Bearer ${n}`), e.data instanceof FormData && delete e.headers["Content-Type"], e;
+		return n && (e.headers.Authorization = `Bearer ${n}`), e;
 	});
 }, a = (e, t, n) => {
 	let r = t.auth, i = !1, a = [], o = (e = null, t = null) => {
@@ -23,7 +23,7 @@ var t = (e) => e ? typeof e == "function" ? e : (e, t) => {
 			e ? r(e) : n(t);
 		}), a = [];
 	}, s = r.shouldRefresh ?? ((e) => {
-		let t = e.response?.status, n = e.response?.data?.message, i = r.refreshCondition?.statusCodes ?? [401, 426], a = r.refreshCondition?.messages ?? ["TOKEN_EXPIRED"];
+		let t = e.response?.status, n = e.response?.data?.message, i = r.refreshCondition?.statusCodes ?? [], a = r.refreshCondition?.messages ?? [];
 		return t != null && i.includes(t) || n != null && a.includes(n);
 	});
 	e.interceptors.response.use(null, async (c) => {
@@ -73,14 +73,19 @@ var t = (e) => e ? typeof e == "function" ? e : (e, t) => {
 		return await t.onError(e, i), Promise.reject(e);
 	});
 }, c = (e) => {
-	let c = t(e.debug), u = l(e);
-	n(u, c), r(u, c), e.retry && o(u, e.retry, c), s(u, e, "public");
-	let d = null;
-	return e.auth && (d = l(e), n(d, c), i(d, e.auth), r(d, c), a(d, e, c), e.retry && o(d, e.retry, c), s(d, e, "private")), {
-		publicClient: u,
-		privateClient: d
+	e.interceptors.request.use((e) => {
+		let t = e.data;
+		return t instanceof FormData || t instanceof Blob ? delete e.headers["Content-Type"] : t instanceof URLSearchParams && (e.headers["Content-Type"] = "application/x-www-form-urlencoded"), e;
+	});
+}, l = (e) => {
+	let l = t(e.debug), d = u(e);
+	n(d, l), c(d), r(d, l), e.retry && o(d, e.retry, l), s(d, e, "public");
+	let f = null;
+	return e.auth && (f = u(e), n(f, l), c(d), i(f, e.auth), r(f, l), a(f, e, l), e.retry && o(f, e.retry, l), s(f, e, "private")), {
+		publicClient: d,
+		privateClient: f
 	};
-}, l = (t) => e.create({
+}, u = (t) => e.create({
 	baseURL: t.baseURL,
 	timeout: t.timeout ?? 3e4,
 	withCredentials: t.withCredentials ?? !1,
@@ -90,4 +95,4 @@ var t = (e) => e ? typeof e == "function" ? e : (e, t) => {
 	}
 });
 //#endregion
-export { c as createHttpClient };
+export { l as createApiClient };

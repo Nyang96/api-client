@@ -3,7 +3,7 @@ import type {
   AxiosError,
   InternalAxiosRequestConfig,
 } from 'axios';
-import type { HttpClientConfig, ErrorContext } from '../types';
+import type { ApiClientConfig, ErrorContext } from '../types';
 
 /**
  * 에러 후처리 인터셉터
@@ -12,7 +12,7 @@ import type { HttpClientConfig, ErrorContext } from '../types';
  */
 export const setupErrorInterceptor = (
   instance: AxiosInstance,
-  config: HttpClientConfig,
+  config: ApiClientConfig,
   clientType: 'public' | 'private'
 ) => {
   if (!config.onError) return;

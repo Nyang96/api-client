@@ -1,25 +1,7 @@
 import { AxiosError } from 'axios';
 import { AxiosInstance } from 'axios';
 
-/**
- * HTTP 클라이언트 팩토리
- *
- * 인터셉터 등록 순서 (순서가 동작에 영향):
- * [request]  로깅 → 인증(private만) → 전송
- * [response] 로깅 → 리프레시(private만) → 재시도 → 에러 후처리
- */
-export declare const createHttpClient: (config: HttpClientConfig) => HttpClientInstance;
-
-export declare interface ErrorContext {
-    url?: string;
-    method?: string;
-    status?: number;
-    duration?: number | null;
-    retryCount?: number;
-    clientType: 'public' | 'private';
-}
-
-export declare interface HttpClientAuthConfig {
+export declare interface ApiClientAuthConfig {
     getAccessToken: () => string | null | Promise<string | null>;
     getRefreshToken: () => string | null | Promise<string | null>;
     /**
@@ -43,7 +25,7 @@ export declare interface HttpClientAuthConfig {
     shouldRefresh?: (error: AxiosError) => boolean;
 }
 
-export declare interface HttpClientBaseConfig {
+export declare interface ApiClientBaseConfig {
     baseURL: string;
     timeout?: number;
     defaultHeaders?: Record<string, string>;
@@ -54,16 +36,34 @@ export declare interface HttpClientBaseConfig {
     debug?: boolean | LogFn;
 }
 
-export declare interface HttpClientConfig extends HttpClientBaseConfig {
+export declare interface ApiClientConfig extends ApiClientBaseConfig {
     /** 인증 설정 — 있으면 privateClient 생성 */
-    auth?: HttpClientAuthConfig;
+    auth?: ApiClientAuthConfig;
     /** 에러 후처리 콜백 (에러 저장, 알림 등) */
     onError?: (error: AxiosError, context: ErrorContext) => void | Promise<void>;
 }
 
-export declare interface HttpClientInstance {
+export declare interface ApiClientInstance {
     publicClient: AxiosInstance;
     privateClient: AxiosInstance | null;
+}
+
+/**
+ * Api 클라이언트 팩토리
+ *
+ * 인터셉터 등록 순서 (순서가 동작에 영향):
+ * [request]  로깅 → 인증(private만) → 전송
+ * [response] 로깅 → 리프레시(private만) → 재시도 → 에러 후처리
+ */
+export declare const createApiClient: (config: ApiClientConfig) => ApiClientInstance;
+
+export declare interface ErrorContext {
+    url?: string;
+    method?: string;
+    status?: number;
+    duration?: number | null;
+    retryCount?: number;
+    clientType: 'public' | 'private';
 }
 
 export declare type LogFn = (message: string, data?: any) => void;
