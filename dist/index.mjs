@@ -84,14 +84,21 @@ function l(e) {
 	if (!e || typeof e != "object") return;
 	let t = e;
 	if (typeof t.message == "string") return t.message;
+	if (Array.isArray(t.message) && t.message.length > 0) return t.message.filter((e) => typeof e == "string").join(", ");
+	if (typeof t.detail == "string") return t.detail;
+	if (typeof t.title == "string") return t.title;
+	if (Array.isArray(t.detail) && t.detail.length > 0) return t.detail.map((e) => typeof e == "string" ? e : typeof e?.msg == "string" ? e.msg : null).filter(Boolean).join(", ");
 	if (typeof t.error == "string") return t.error;
 	if (typeof t.msg == "string") return t.msg;
-	if (t.error && typeof t.error.message == "string") return t.error.message;
+	if (t.error && typeof t.error == "object") {
+		let e = t.error;
+		if (typeof e.message == "string") return e.message;
+	}
 }
 function u(e) {
 	if (!e || typeof e != "object") return null;
 	let t = e;
-	return typeof t.code == "string" ? t.code : typeof t.errorCode == "string" ? t.errorCode : typeof t.error_code == "string" ? t.error_code : null;
+	return typeof t.code == "string" ? t.code : typeof t.code == "number" ? String(t.code) : typeof t.errorCode == "string" ? t.errorCode : typeof t.error_code == "string" ? t.error_code : typeof t.statusCode == "number" ? String(t.statusCode) : typeof t.type == "string" ? t.type : null;
 }
 function d(e) {
 	let t = e.config;
@@ -171,7 +178,7 @@ var m = (t) => {
 		timestamp: n,
 		originalError: t
 	};
-}, h = (e) => typeof e == "object" && !!e && "timestamp" in e && "originalError" in e, g = (e, t, n) => {
+}, h = (e) => typeof e == "object" && !!e && "timestamp" in e && "originalError" in e && "status" in e && "message" in e, g = (e, t, n) => {
 	e.interceptors.response.use(null, async (e) => {
 		let r = m(e), i = {
 			url: r.url || void 0,
@@ -192,13 +199,13 @@ var m = (t) => {
 	let s = t(e.debug), c = y(e);
 	n(c, s), _(c), r(c, s), e.retry && o(c, e.retry, s), g(c, e, "public");
 	let l = null;
-	return e.auth && (l = y(e), n(l, s), _(l), i(l, e.auth), r(l, s), a(l, e, s), console.log("register3"), e.retry && o(l, e.retry, s), g(l, e, "private")), {
+	return e.auth && (l = y(e), n(l, s), _(l), i(l, e.auth), r(l, s), a(l, e, s), e.retry && o(l, e.retry, s), g(l, e, "private")), {
 		publicClient: c,
 		privateClient: l
 	};
 }, y = (t) => e.create({
 	baseURL: t.baseURL,
-	timeout: t.timeout ?? 3e4,
+	timeout: t.timeout ?? 0,
 	withCredentials: t.withCredentials ?? !1,
 	headers: {
 		"Content-Type": "application/json",

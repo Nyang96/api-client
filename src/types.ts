@@ -1,10 +1,14 @@
 import type { AxiosError } from 'axios';
 
+// ─────────────────────────────────────────────
+// Client Configuration
+// ─────────────────────────────────────────────
+
 /** Base configuration shared by all API clients */
 export interface ApiClientBaseConfig {
   /** Base URL for all requests */
   baseURL: string;
-  /** Request timeout in milliseconds (0 = no timeout, follows Axios default if undefined) */
+  /** Request timeout in milliseconds (default: 0 = no timeout) */
   timeout?: number;
   /** Default headers applied to all requests */
   defaultHeaders?: Record<string, string>;
@@ -32,8 +36,8 @@ export interface ApiClientAuthConfig {
   getAccessToken: () => string | null | Promise<string | null>;
   /** Returns the current refresh token */
   getRefreshToken: () => string | null | Promise<string | null>;
-  
-  /** 
+
+  /**
    * Default conditions to trigger token refresh.
    * Used only when shouldRefresh is not provided.
    */
@@ -43,7 +47,7 @@ export interface ApiClientAuthConfig {
     /** Response error messages that should trigger token refresh */
     messages?: string[];
   };
-  /** 
+  /**
    * Custom override logic for token refresh decision.
    * If provided, refreshCondition will be ignored.
    */
@@ -59,9 +63,8 @@ export interface ApiClientAuthConfig {
 
 /** Top-level configuration for creating an API client */
 export interface ApiClientConfig extends ApiClientBaseConfig {
-   /** Authentication configuration. If provided, a privateClient will be created */
+  /** Authentication configuration. If provided, a privateClient will be created */
   auth?: ApiClientAuthConfig;
-
   /** Post-error handler invoked with normalized HttpError and request context */
   onError?: (error: HttpError, context: ErrorContext) => void | Promise<void>;
 }
@@ -81,6 +84,10 @@ export interface TokenPair {
   /** Optional refresh token */
   refreshToken?: string;
 }
+
+// ─────────────────────────────────────────────
+// Error Types
+// ─────────────────────────────────────────────
 
 /** Contextual metadata for the request when an error occurs */
 export interface ErrorContext {
@@ -123,7 +130,7 @@ export interface HttpErrorRequest {
 
 /** Response snapshot captured at the time of error (part of HttpError) */
 export interface HttpErrorResponse {
-  /** Status code */
+  /** HTTP status code */
   status: number;
   /** HTTP status text from the response */
   statusText: string;
@@ -133,12 +140,12 @@ export interface HttpErrorResponse {
   data: unknown;
 }
 
-/** 
+/**
  * Normalized HTTP error structure derived from AxiosError,
  * used for consistent error handling and logging
  */
 export interface HttpError {
-  /** Status code */
+  /** HTTP status code */
   status: number | null;
   /** HTTP status text from the response */
   statusText: string;

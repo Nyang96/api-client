@@ -34,7 +34,7 @@ export declare interface ApiClientAuthConfig {
 export declare interface ApiClientBaseConfig {
     /** Base URL for all requests */
     baseURL: string;
-    /** Request timeout in milliseconds (0 = no timeout, follows Axios default if undefined) */
+    /** Request timeout in milliseconds (default: 0 = no timeout) */
     timeout?: number;
     /** Default headers applied to all requests */
     defaultHeaders?: Record<string, string>;
@@ -96,7 +96,7 @@ export declare interface ErrorContext {
  * used for consistent error handling and logging
  */
 export declare interface HttpError {
-    /** Status code */
+    /** HTTP status code */
     status: number | null;
     /** HTTP status text from the response */
     statusText: string;
@@ -144,7 +144,7 @@ export declare interface HttpErrorRequest {
 
 /** Response snapshot captured at the time of error (part of HttpError) */
 export declare interface HttpErrorResponse {
-    /** Status code */
+    /** HTTP status code */
     status: number;
     /** HTTP status text from the response */
     statusText: string;
@@ -170,6 +170,9 @@ export declare type LogFn = (message: string, data?: any) => void;
  * - AxiosError (HTTP request/response errors)
  * - Native Error (runtime, parsing, etc.)
  * - Unknown values (e.g., string throws)
+ *
+ * Built-in extractors cover common backend frameworks
+ * (Spring Boot, NestJS, Django, FastAPI, ASP.NET, Laravel, Express, etc.)
  *
  * Ensures consistent error shape for downstream handling and logging
  */

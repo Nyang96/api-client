@@ -58,7 +58,6 @@ export const createApiClient = (config: ApiClientConfig): ApiClientInstance => {
     setupAuthRequestInterceptor(privateClient, config.auth);
     setupResponseLogger(privateClient, log);
     setupRefreshInterceptor(privateClient, config, log);
-    console.log('register3')
     if (config.retry) {
       setupRetryInterceptor(privateClient, config.retry, log);
     }
@@ -77,7 +76,7 @@ export const createApiClient = (config: ApiClientConfig): ApiClientInstance => {
 const createBaseInstance = (config: ApiClientConfig): AxiosInstance => {
   return axios.create({
     baseURL: config.baseURL,
-    timeout: config.timeout ?? 30000,
+    timeout: config.timeout ?? 0,
     withCredentials: config.withCredentials ?? false,
     headers: {
       'Content-Type': 'application/json',

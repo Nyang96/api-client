@@ -50,43 +50,85 @@ function buildFullURL(
 }
 
 /**
- * Extracts a human-readable message from server response data
+ * Extracts a human-readable message from server response data (built-in).
  *
- * Supports multiple common response shapes:
- * - { message }
- * - { error }
- * - { msg }
- * - { error: { message } }
+ * Covers common backend framework error formats:
+ * - General:      { message }, { error }, { msg }
+ * - Spring Boot:  { message, error }
+ * - NestJS:       { message: string | string[] }
+ * - Django / FastAPI (RFC 7807): { detail: string | object[] }
+ * - ASP.NET (RFC 7807): { title, detail }
+ * - Laravel:      { message, errors: { field: [...] } }
+ * - Nested:       { error: { message } }
+ *
+ * Exploration order is intentional — more specific fields first,
+ * broader fallbacks last.
  */
 function extractServerMessage(data: unknown): string | undefined {
   if (!data || typeof data !== 'object') return undefined;
   const d = data as Record<string, unknown>;
 
+  // ── Direct message fields (most common) ──
   if (typeof d.message === 'string') return d.message;
+
+  // NestJS: message can be string[] for validation errors
+  if (Array.isArray(d.message) && d.message.length > 0) {
+    return d.message.filter((m): m is string => typeof m === 'string').join(', ');
+  }
+
+  // ── RFC 7807 / ASP.NET / FastAPI ──
+  // detail takes priority over title (detail is more specific)
+  if (typeof d.detail === 'string') return d.detail;
+  if (typeof d.title === 'string') return d.title;
+
+  // FastAPI: detail can be an array of validation error objects
+  if (Array.isArray(d.detail) && d.detail.length > 0) {
+    return d.detail
+      .map((item: any) => {
+        if (typeof item === 'string') return item;
+        if (typeof item?.msg === 'string') return item.msg;
+        return null;
+      })
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  // ── Shorthand fields ──
   if (typeof d.error === 'string') return d.error;
   if (typeof d.msg === 'string') return d.msg;
-  if (d.error && typeof (d.error as any).message === 'string') {
-    return (d.error as any).message;
+
+  // ── Nested error object (Express / custom wrappers) ──
+  if (d.error && typeof d.error === 'object') {
+    const nested = d.error as Record<string, unknown>;
+    if (typeof nested.message === 'string') return nested.message;
   }
 
   return undefined;
 }
 
 /**
- * Extracts an error code from server response data
+ * Extracts an error code from server response data (built-in).
  *
- * Supports common field variations:
- * - code
- * - errorCode
- * - error_code
+ * Covers common field variations across frameworks:
+ * - code, errorCode, error_code (general)
+ * - statusCode (NestJS)
+ * - type (RFC 7807 / ASP.NET)
  */
 function extractServerCode(data: unknown): string | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Record<string, unknown>;
 
+  // ── Direct code fields ──
   if (typeof d.code === 'string') return d.code;
+  if (typeof d.code === 'number') return String(d.code);
   if (typeof d.errorCode === 'string') return d.errorCode;
   if (typeof d.error_code === 'string') return d.error_code;
+
+  // ── NestJS statusCode (number → string) ──
+  if (typeof d.statusCode === 'number') return String(d.statusCode);
+
+  // ── RFC 7807 type URI ──
+  if (typeof d.type === 'string') return d.type;
 
   return null;
 }
@@ -144,7 +186,8 @@ function buildResponseSnapshot(error: AxiosError): HttpErrorResponse | null {
 function flattenHeaders(headers: unknown): Record<string, string> {
   if (!headers || typeof headers !== 'object') return {};
 
-  // AxiosHeaders.toJSON() 이 있으면 사용, 없으면 수동 변환
+  // If AxiosHeaders.toJSON() is available, it will be used.
+  // Otherwise, falls back to manual conversion.
   if (typeof (headers as any).toJSON === 'function') {
     const json = (headers as any).toJSON() as Record<string, unknown>;
     return Object.fromEntries(
@@ -164,6 +207,9 @@ function flattenHeaders(headers: unknown): Record<string, string> {
  * - AxiosError (HTTP request/response errors)
  * - Native Error (runtime, parsing, etc.)
  * - Unknown values (e.g., string throws)
+ *
+ * Built-in extractors cover common backend frameworks
+ * (Spring Boot, NestJS, Django, FastAPI, ASP.NET, Laravel, Express, etc.)
  *
  * Ensures consistent error shape for downstream handling and logging
  */
@@ -239,6 +285,8 @@ export const isHttpError = (error: unknown): error is HttpError => {
     typeof error === 'object' &&
     error !== null &&
     'timestamp' in error &&
-    'originalError' in error
+    'originalError' in error &&
+    'status' in error &&
+    'message' in error
   );
 };
